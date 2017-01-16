@@ -229,9 +229,6 @@ void checkCollistion(){
 //    
 //}
 	    
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState); 
-    }
 
 	@Override
 	public void initGameView(Activity activity, IGameController gameController,
@@ -272,8 +269,16 @@ void checkCollistion(){
 		    direction = -direction;
 		    speedX = -speedX;
 		}
-		LayerManager.onTouchLayers(event);
+//		LayerManager.onTouchLayers(event);
 		return true;
+	}
+	
+	@Override
+	public boolean onSceneTouchEvent(MotionEvent event) {
+		// TODO Auto-generated method stub
+		return onTouchEvent(event);
+		
+//		return super.onSceneTouchEvent(event);
 	}
 	
 	@Override
@@ -302,7 +307,7 @@ void checkCollistion(){
 	@Override
 	public void doDraw(Canvas canvas) {
 		// TODO Auto-generated method stub
-		LayerManager.drawLayers(canvas, null);
+		LayerManager.getInstance().drawLayers(canvas, null);
 		Paint paint = new Paint();
 		paint.setColor(Color.RED);
 //		canvas.drawRect(new RectF(player.getFrame().left+10, player.getFrame().top+10, player.getFrame().right-10, player.getFrame().bottom-10), paint);
@@ -432,7 +437,7 @@ void checkCollistion(){
 
 	public void updateWithTimeSinceLastUpdate(){
 //		if(gameTimeUtil.isArriveExecuteTime()){     
-			LayerManager.processLayers();
+			LayerManager.getInstance().processLayers();
 	        move();
 //	        draw();
 	        if(checkEatToolable)
@@ -530,6 +535,9 @@ void checkCollistion(){
 	    wallLine.add(wallLeft);
 	    wallLine.add(wallRight);
 	    walls.add(wallLine);
+	    
+	    wallLeft.setBackgroundColor(Color.BLUE);
+	    wallRight.setBackgroundColor(Color.BLUE);
 	}
 
 	public void initGameScoreForDistanceLabel(){
