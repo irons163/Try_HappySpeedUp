@@ -6,43 +6,25 @@ import java.util.Random;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
-import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Paint.Align;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.provider.MediaStore.Audio;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
-import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.example.try_gameengine.action.MAction;
 import com.example.try_gameengine.action.MAction2;
 import com.example.try_gameengine.action.MovementAction;
-import com.example.try_gameengine.action.MovementAtionController;
-import com.example.try_gameengine.framework.ALayer;
-import com.example.try_gameengine.framework.ALayer.LayerParam;
 import com.example.try_gameengine.framework.ButtonLayer;
-import com.example.try_gameengine.framework.ButtonLayer.OnClickListener;
 import com.example.try_gameengine.framework.GameView;
 import com.example.try_gameengine.framework.IGameController;
 import com.example.try_gameengine.framework.IGameModel;
-import com.example.try_gameengine.framework.ILayer;
 import com.example.try_gameengine.framework.LabelLayer;
-import com.example.try_gameengine.framework.Layer;
 import com.example.try_gameengine.framework.LayerManager;
 import com.example.try_gameengine.framework.Sprite;
 import com.example.try_gameengine.scene.EasyScene;
@@ -51,44 +33,44 @@ import com.example.try_happyspeedup.utils.AudioUtil;
 import com.example.try_happyspeedup.utils.BitmapUtil;
 import com.example.try_happyspeedup.utils.CommonUtil;
 
-
-
-
 public class GameScene extends EasyScene implements ButtonLayer.OnClickListener{
-    int direction;
-//    Bitmap bitmapUtil;
-    int offsetX;
-    int offsetY;
-    Sprite backgroundNode, backgroundNode2;
-    int backgroundMovePointsPerSec;
-    int gameScoreForDistance;
-    LabelLayer gameScoreForDistanceLabel;
-    int distanceCount;
-    int readyStep;
+	private GameView gameView;
+	private int direction;
+	private int offsetX;
+	private int offsetY;
+	private Sprite backgroundNode, backgroundNode2;
+	private int backgroundMovePointsPerSec;
+	private int gameScoreForDistance;
+	private LabelLayer gameScoreForDistanceLabel;
+	private int distanceCount;
+	private int readyStep;
 //    NSTimer * theGameTimer, * theReadyTimer, *theToolTimer;
-    LabelLayer readyLabel;
-    boolean readyFlag;
-    Sprite rankBtn;
+	private LabelLayer readyLabel;
+	private boolean readyFlag;
+	private Sprite rankBtn;
 //    MyADView * myAdView;
-    
-    List<Bitmap> musicBtnTextures;
-    
-    Sprite musicBtn;
-    float speedX;
-    float speedY;
-    
-    int toolTimeCount;
-    boolean flyFlag;
-    
-    boolean toolCounterStart;
-    boolean checkEatToolable;
-    
-    boolean gameFlag;
-    List<List<Wall>> walls;
-    List<Tool> tools;
-    Player player;
-    
+	private List<Bitmap> musicBtnTextures;
+	private Sprite musicBtn;
+	private float speedX;
+	private float speedY;
+	private int toolTimeCount;
+	private boolean flyFlag;
+	private boolean toolCounterStart;
+	private boolean checkEatToolable;
+	private boolean gameFlag;
+	private List<List<Wall>> walls;
+	private List<Tool> tools;
+	private Player player;
 	private GameTimeUtil gameTimeUtil;
+	private GameTimeUtil countToolTimer, theReadyTimer;
+	private final int BASE_SPEEDX = 6;
+	private final float BASE_SPEEDY = -7.5f;
+	private final int TOOL_TIME = 10;
+	private int WALL_LEFT_AND_RIGHT_DISTANCE = 230;
+	private int playerStartX = 160;
+	private int platerStartY = 200;
+	private int DIRECTION_LEFT = -1;
+	private int DIRECTION_RIGHT = 1;
 	
 	public GameScene(Context context, String id, int level) {
 		super(context, id, level);
@@ -98,15 +80,12 @@ public class GameScene extends EasyScene implements ButtonLayer.OnClickListener{
 	    direction = DIRECTION_RIGHT;
 	    initGame();
 	    getBackground();
-	    
 	    addAutoDraw(backgroundNode);
 	    backgroundMovePointsPerSec = (int)speedY;
 	    createInitWall();
 	    createPlayer();
 	    initGameScoreForDistanceLabel();
-        
         isEnableRemoteController(false);
-
     	gameTimeUtil = new GameTimeUtil(200);
 	}
 	
@@ -187,48 +166,10 @@ public class GameScene extends EasyScene implements ButtonLayer.OnClickListener{
 //	    myAdView.anchorPoint = CGPointMake(0.5, 0);
 //	    [self addChild:myAdView];
 	}
-
 	
-	GameView gameView;
-	
-	
-void checkCollistion(){
+	void checkCollistion() {
 
-}
-
-//public void downAndUp(final Sprite sprite,float down, float downTime, float up, float upTime, boolean isRepeat){
-//    MovementAction downAct = MAction.moveByY(down, (long)(downTime*1000));
-////    downAct.setTimerOnTickListener(new MovementAction.TimerOnTickListener() {
-////		
-////		@Override
-////		public void onTick(float dx, float dy) {
-////			// TODO Auto-generated method stub
-////			sprite.move(dx, dy);
-////		}
-////	});
-//    //moveByX(CGFloat(0), y: down, duration: downTime)
-//    MovementAction upAct = MAction.moveByY(up, (long)(upTime*1000));
-////    upAct.setTimerOnTickListener(new MovementAction.TimerOnTickListener() {
-////		
-////		@Override
-////		public void onTick(float dx, float dy) {
-////			// TODO Auto-generated method stub
-////			sprite.move(dx, dy);
-////		}
-////	});
-//    
-//    //MAction use threadPool it would delay during action by action.
-//    MovementAction downUpAct = MAction2.sequence(new MovementAction[]{downAct,upAct});
-//    downUpAct.setMovementActionController(new MovementAtionController());
-//    if (isRepeat) {
-//    	sprite.runMovementActionAndAppend(MAction.repeatForever(downUpAct));
-//    }else {
-//    	sprite.runMovementActionAndAppend(downUpAct);
-//    }
-//    
-//    
-//}
-	    
+	}
 
 	@Override
 	public void initGameView(Activity activity, IGameController gameController,
@@ -283,8 +224,6 @@ void checkCollistion(){
 	
 	@Override
 	public void process() {
-		// TODO Auto-generated method stub
-		
 	    if(readyFlag && theReadyTimer==null){
 	        initReadyTimer();
 	        initToolTimer();
@@ -299,14 +238,10 @@ void checkCollistion(){
 	        return;
 	    
 	    updateWithTimeSinceLastUpdate();
-	    
-	    
-		
 	}
 	
 	@Override
 	public void doDraw(Canvas canvas) {
-		// TODO Auto-generated method stub
 		LayerManager.getInstance().drawLayers(canvas, null);
 		Paint paint = new Paint();
 		paint.setColor(Color.RED);
@@ -316,8 +251,6 @@ void checkCollistion(){
 	        	canvas.drawRect(new RectF(wall.getFrame().left+20, wall.getFrame().top+20, wall.getFrame().right-20, wall.getFrame().bottom-20), paint);
 	        }
 		}
-		
-//		fight.drawSelf(canvas, null);
 	}
 
 	@Override
@@ -355,14 +288,12 @@ void checkCollistion(){
 	@Override
 	protected void afterGameStop() {
 		// TODO Auto-generated method stub
-//		AudioUtil.stopBackgr          oundMusic();
 	}
 
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
 		// TODO Auto-generated method stub
-		
 	}
 	@Override
 	public void onClick(ButtonLayer buttonLayer) {
@@ -370,27 +301,13 @@ void checkCollistion(){
 
 	}
 
-	
-
-
 	public void initReadyTimer(){
 	    readyStep = 0;
 	    theReadyTimer = new GameTimeUtil(1000);
-//	    theReadyTimer = [NSTimer scheduledTimerWithTimeInterval:1.0
-//	                                                     target:self
-//	                                                   selector:@selector(countReadyTimer)
-//	                                                   userInfo:nil
-//	                                                    repeats:YES];
-//	    [timers addObject:theReadyTimer];
 	}
 
 	public void countReadyTimer(){
-	    
-	    //    for (int i = 0; i < 4; i++) {
-	    //        readyStep = i;
 	    if (readyStep == 0) {
-	        
-	        //            canvas.drawText("READY", 150, height / 2, paint);
 	        readyLabel.setText("READY");
 	        readyLabel.setPosition(CommonUtil.screenWidth/2, CommonUtil.screenHeight/2);
 	    } else if(readyStep==5){
@@ -400,28 +317,16 @@ void checkCollistion(){
 	        return;
 	    }
 	    else {
-	        //            canvas.drawText(4 - readyStep + "", width / 2, height / 2,
-	        //                            paint);
 	        readyLabel.setText(4-readyStep+"");
-//	        readyLabel.position = CGPointMake(self.frame.size.width/2 - readyLabel.frame.size.width/2, self.frame.size.height/2 );
 	        readyLabel.setPosition(CommonUtil.screenWidth/2, CommonUtil.screenHeight/2);
 	    }
 	    
 	    readyStep++;
-	    //        sleep(1);
-	    //    }
 	}
 
-	GameTimeUtil countToolTimer, theReadyTimer;
 	public void initToolTimer(){
 	    readyStep = 0;
 	    countToolTimer = new GameTimeUtil(1000);
-//	    theToolTimer = [NSTimer scheduledTimerWithTimeInterval:1.0
-//	                                                     target:self
-//	                                                   selector:@selector(countToolTimer)
-//	                                                   userInfo:nil
-//	                                                    repeats:YES];
-	    //    [timers addObject:theReadyTimer];
 	}
 
 	public void countToolTimer(){
@@ -445,25 +350,6 @@ void checkCollistion(){
 	        checkRemoveTools();
 //	    }	    
 	}
-	
-
-
-	final int BASE_SPEEDX = 6;
-	final float BASE_SPEEDY = -7.5f;
-
-	final int TOOL_TIME = 10;
-
-	int WALL_LEFT_AND_RIGHT_DISTANCE = 230;
-
-
-	int playerStartX = 160;
-	int platerStartY = 200;
-
-
-
-	int DIRECTION_LEFT = -1;
-	int DIRECTION_RIGHT = 1;
-
 
 	public void createInitWall() {
 	    int wallLeftX = CommonUtil.screenWidth/4, wallRightX = wallLeftX + WALL_LEFT_AND_RIGHT_DISTANCE;
@@ -541,44 +427,27 @@ void checkCollistion(){
 	}
 
 	public void initGameScoreForDistanceLabel(){
-//	    gameScoreForDistanceLabel = [SKLabelNode labelNodeWithText:@"0"];
 	    gameScoreForDistanceLabel = new LabelLayer(0, 0, false);
 	    gameScoreForDistanceLabel.setText("0");
 	    gameScoreForDistanceLabel.setTextSize(30);
 	    gameScoreForDistanceLabel.setTextColor(Color.rgb((int)(255*0.15), (int)(255*0.15), (int)(255*0.7)));
 	    gameScoreForDistanceLabel.setPosition(gameScoreForDistanceLabel.getFrame().width()/2, gameScoreForDistanceLabel.getFrame().height() -100 - gameScoreForDistanceLabel.getFrame().height());
 	    gameScoreForDistanceLabel.setzPosition(5);
-//	    gameScoreForDistanceLabel.text = "0";
-//	    gameScoreForDistanceLabel.fontSize = 30;
-//	    gameScoreForDistanceLabel.fontColor = SKColor colorWithRed:0.15 green:0.15 blue:0.7 alpha:1.0];
-//	    gameScoreForDistanceLabel.position = CGPointMake(gameScoreForDistanceLabel.frame.size.width/2, self.frame.size.height - 100 - gameScoreForDistanceLabel.frame.size.height);
-//	    gameScoreForDistanceLabel.zPosition = 5;
 	    addAutoDraw(gameScoreForDistanceLabel);
 	}
 
 	public void createPlayer(){
-	    
-//	    player = new Player(playerStartX, platerStartY);
 	    player = new Player(playerStartX,platerStartY,false);
 //	    player.setBitmapAndFrameWH(BitmapUtil.hamster, 96, 100);
 	    player.setBitmapAndFrameWHAndColAndRowNum(BitmapUtil.hamster, 72, 75, 7, 2);
-//	    player.setAnchorPoint(1,1);
 	    player.setAnchorPoint(0.5f,0.5f);
-//	    player.setAnchorPoint(0,0);
-//	    player.setAnchorPoint(1.2f,-1.2f);
-//	    player.setXscale(-1.5f);
 	    player.setXscale(1.0f);
-	    player.setYscale(1.5f);
-	    player.setYscale(1.2f);
+//	    player.setYscale(1.5f);
+//	    player.setYscale(1.2f);
+//	    player.setYscale(1.0f);
+//	    player.setYscale(0f);
+//	    player.setYscale(-0.3f);
 	    player.setYscale(1.0f);
-//	    player.setYscale(0.7f);
-//	    player.setYscale(0.5f);
-	    player.setYscale(0f);
-	    player.setYscale(-0.3f);
-	    player.setYscale(1.0f);
-//	    NSArray* array =  [TextureHelper getTexturesWithSpriteSheetNamed:@"hamster" withinNode:nil sourceRect:CGRectMake(0, 0, 192, 200) andRowNumberOfSprites:2 andColNumberOfSprites:7
-//	                                                           sequence:@[@7,@8]];
-	 
 	    player.addActionFPSFrame("hamster", new int[]{7,8}, new int[]{8,8});
 	    player.setAction("hamster");
 //	    player.setHeight(50);
@@ -661,8 +530,7 @@ void checkCollistion(){
 	    if(gameScoreForDistance%1500 == 0){
 	    	List<Wall> wallLine = walls.get(walls.size()-1);
 	        Wall wall = wallLine.get(0);
-	        createToolWithToolX((int)(wall.getLeft() + WALL_LEFT_AND_RIGHT_DISTANCE/2));
-//	        [self createToolWithToolX:wall.position.x + WALL_LEFT_AND_RIGHT_DISTANCE/2];
+	        createToolWithToolXY(wall.getCenterX() + WALL_LEFT_AND_RIGHT_DISTANCE/2, wall.getY());
 	    }
 	}
 
@@ -728,56 +596,40 @@ void checkCollistion(){
 
 	public void getBackground(){
 	    backgroundNode = new Sprite(0, 0, false);
-//	    backgroundNode.anchorPoint = CGPointZero;
-	    
 	    Sprite bg1 = new Sprite(0, 0, false);
 	    bg1.setBitmapAndAutoChangeWH(BitmapUtil.bg01_green);
-//	    bg1.anchorPoint = CGPointZero;
 	    bg1.setWidth(CommonUtil.screenWidth);
 	    bg1.setHeight(CommonUtil.screenHeight);
 	    bg1.setPosition(0, 0);
-	    
 	    backgroundNode.addChild(bg1);
 	    
 	    Sprite bg2 = new Sprite(0, 0, false);
 	    bg2.setBitmapAndAutoChangeWH(BitmapUtil.bg01_green);
-//	    bg2.anchorPoint = CGPointZero;
 	    bg2.setWidth(CommonUtil.screenWidth);
 	    bg2.setHeight(CommonUtil.screenHeight);
 	    bg2.setPosition(0, bg1.getHeight());
-	    
 	    backgroundNode.addChild(bg2);
 	    
 	    backgroundNode.setWidth(bg1.getWidth());
 	    backgroundNode.setHeight(bg1.getHeight() + bg2.getHeight());
-//	    backgroundNode.size = CGSizeMake(bg1.size.width, bg1.size.height + bg2.size.height);
-//	    backgroundNode.name = @"background";
-	    
 	    backgroundNode2 = new Sprite(0, 0, false);
-//	    backgroundNode.anchorPoint = CGPointZero;
 	    
 	    bg1 = new Sprite(0, 0, false);
 	    bg1.setBitmapAndAutoChangeWH(BitmapUtil.bg01_green);
-//	    bg1.anchorPoint = CGPointZero;
 	    bg1.setWidth(CommonUtil.screenWidth);
 	    bg1.setHeight(CommonUtil.screenHeight);
 	    bg1.setPosition(0, 0);
-	    
 	    backgroundNode2.addChild(bg1);
 	    
 	    bg2 = new Sprite(0, 0, false);
 	    bg2.setBitmapAndAutoChangeWH(BitmapUtil.bg01_green);
-//	    bg2.anchorPoint = CGPointZero;
 	    bg2.setWidth(CommonUtil.screenWidth);
 	    bg2.setHeight(CommonUtil.screenHeight);
 	    bg2.setPosition(0, bg1.getHeight());
-	    
 	    backgroundNode2.addChild(bg2);
 	    
 	    backgroundNode2.setWidth(bg1.getWidth());
 	    backgroundNode2.setHeight(bg1.getHeight() + bg2.getHeight());
-//	    backgroundNode.size = CGSizeMake(bg1.size.width, bg1.size.height + bg2.size.height);
-//	    backgroundNode.name = @"background";
 	    backgroundNode2.setPosition(0, -backgroundNode.getHeight());
 	    addAutoDraw(backgroundNode2);
 	}
@@ -790,48 +642,25 @@ void checkCollistion(){
         	else
         		bgNode = backgroundNode2;
         	
-//            if (bgNode.getY() <= -bgNode.getHeight()) {
-//            	bgNode.setPosition(bgNode.getX(), bgNode.getY() + bgNode.getHeight()*2);
-//            }
         	if (bgNode.getY() >= bgNode.getHeight()) {
             	bgNode.setPosition(bgNode.getX(), bgNode.getY() - bgNode.getHeight()*2);
             }
-            
-//    	        CGPoint backgroundVelocity = CGPointMake(0, -backgroundMovePointsPerSec);
             PointF backgroundVelocity = new PointF(0, -speedY);
-            //        CGPoint amountToMove = backgroundVelocity;
             bgNode.setPosition(bgNode.getX() + backgroundVelocity.x, bgNode.getY() + backgroundVelocity.y);
         }
 
-	}
-
-	public void draw(){
-//	    Canvas canvas = surfaceHolder.lockCanvas();
-//	    canvas.drawColor(Color.WHITE);
-	//    
-//	    player.draw(canvas);
-	//    
-//	    for (ArrayList<Wall> wallLine : walls) {
-//	        for (Wall wall : wallLine) {
-//	            wall.draw(canvas);
-//	        }
-//	    }
-//	    surfaceHolder.unlockCanvasAndPost(canvas);
 	}
 
 	public void checkEatTool(){
 	    boolean isCollision = false;
 	    Tool tool = null;
 	    for (int wallLinePosition = 0; wallLinePosition < tools.size(); wallLinePosition++) {
-	        
 	        tool = tools.get(wallLinePosition);
 	        isCollision = isCollision(player, tool);
-	        
 	        if (isCollision) {
 	            break;
 	        }
 	    }
-	    
 	    if(isCollision){
 	        tools.remove(tool);
 	        tool.removeFromParent();
@@ -849,7 +678,6 @@ void checkCollistion(){
 	            removeArray.add(tool);
 	        }
 	    }
-	    
 	    tools.removeAll(removeArray);
 	}
 
@@ -858,7 +686,7 @@ void checkCollistion(){
 	int TOOL_FLY = 2;
 	int TOOL_TPYE_NUM = 3;
 
-	public void createToolWithToolX(int toolX){
+	public void createToolWithToolXY(float toolX, float toolY){
 	    Tool tool;
 	    Random random = new Random();
 	    int type = random.nextInt(5);
@@ -882,8 +710,8 @@ void checkCollistion(){
 	        tool.type = TOOL_FLY;
 	    }
 //	    tool.setPosition(toolX, CommonUtil.screenHeight);
-	    tool.setPosition(toolX, 0);
-	    tool.setAnchorPoint(0.5f, 0.5f);
+	    tool.setPosition(toolX, toolY);
+	    tool.setAnchorPoint(0.5f, 1.0f);
 	    addAutoDraw(tool);
 	    tools.add(tool);
 	}
@@ -907,7 +735,7 @@ void checkCollistion(){
 	}
 
 	public void speedUp(){
-	    if(speedY > 10){
+	    if(speedY < -15){
 	        return;
 	    }
 	    
@@ -916,13 +744,13 @@ void checkCollistion(){
 	    }else{
 	        speedX -= 3.9;
 	    }
-	    speedY += 3;
+	    speedY -= 3;
 	    
 	    toolCounterStart = true;
 	}
 
 	public void speedDown(){
-	    if(speedX < 4 && speedY < 42){
+	    if(speedX < 4 && speedY > 42){
 	        return;
 	    }
 	    
@@ -932,7 +760,7 @@ void checkCollistion(){
 	        speedX += 3.9;
 	    }
 
-	    speedY -= 3;
+	    speedY += 3;
 	    
 	    toolCounterStart = true;
 	}
@@ -941,9 +769,6 @@ void checkCollistion(){
 	    flyFlag = true;
 	    speedX = 0;
 	    toolCounterStart = true;
-//	    player.xScale = 2;
-//	    player.yScale = 2;
-//	    MovementAction fly = [SKAction scaleTo:2 duration:2.0f];
 	    MovementAction fly = MAction.scaleToAction(2000, 2, 2);
 	    player.runMovementAction(fly);
 	    checkEatToolable = false;
@@ -968,8 +793,7 @@ void checkCollistion(){
 //	    layerParam.setPercentageX(0.5f);
 //	    layerParam.setEnabledPercentagePositionX(true);
 //	    wing.setLayerParam(layerParam);
-	    
-	    wing.setzPosition(3);
+//	    wing.setzPosition(3);
 	    player.addChild(wing);
 	}
 
@@ -982,15 +806,8 @@ void checkCollistion(){
 	    speedY = BASE_SPEEDY;
 	    
 	    if (flyFlag) {
-//	        SKAction* leftDown = [SKAction scaleTo:1 duration:2.0f];
-//	        [player runAction:[SKAction sequence:@[leftDown, [SKAction runBlock:^{
-//	            flyFlag = false;
-//	            checkEatToolable = true;
-//	            [player removeAllChildren];
-//	        }]]]];
 	        MovementAction leftDown = MAction.scaleToAction(2000, 1, 1);
 	        player.runMovementAction(MAction2.sequence(new MovementAction[]{leftDown, MAction.runBlockNoDelay(new MAction.MActionBlock() {
-				
 				@Override
 				public void runBlock() {
 					// TODO Auto-generated method stub
@@ -1000,7 +817,6 @@ void checkCollistion(){
 				}
 			})}));
 	    }
-	    
 	}
 
 	public int gameScoreForDistance(){
